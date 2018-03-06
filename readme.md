@@ -18,4 +18,4 @@ Solution was to `rm -rf venv`, `python3 -m virtualenv venv`, then `pip3 install 
 1. `source venv/bin/activate`
 2. In another window, run a server (`http-server -p 3000` or equivalent) to fulfill the externally-hosted stylesheet requirement (like I said, a real pain).
 3. Uncomment `# app.css.append_css({"external_url": "http://127.0.0.1:3000/style.css"})`
-4. When doen, `deactivate`
+4. When done, `deactivate`
