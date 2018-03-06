@@ -11,7 +11,8 @@ server = app.server
 
 app.css.append_css({"external_url": "https://fonts.googleapis.com/css?family=Libre+Franklin:500|Space+Mono"})
 app.css.append_css({"external_url": "https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.3/css/foundation.min.css"})
-app.css.append_css({"external_url": "http://127.0.0.1:3000/style.css"})
+app.css.append_css({"external_url": "https://codepen.io/theianchan/pen/yvdbJa.css"})
+# app.css.append_css({"external_url": "http://127.0.0.1:3000/style.css"})
 
 # Imports
 df_trips = pd.read_csv("data/generated-marketplace-trips.csv")
@@ -154,10 +155,12 @@ app.layout = html.Div([
                 className="user__table--bottom"
             ),
 
-            dcc.Markdown("""A work in progress.
-                Code at [theianchan.github.com](https://theianchan.github.com).
-                Data from [Marketplace Data Generation](https://github.com/theianchan/data-notebooks/blob/master/marketplace-data-generation.ipynb).
+            html.Div([
+                dcc.Markdown("""A work in progress.
+                    View the code on [Github](https://github.com/theianchan/marketplace-data-dash).
+                    View the data in [Jupyter](https://github.com/theianchan/data-notebooks/blob/master/marketplace-data-generation.ipynb).
                 """)
+            ], className="small")
 
         ], className="column small-12 large-7")
 

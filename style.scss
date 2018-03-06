@@ -59,6 +59,13 @@ table {
     margin: 0 auto;
 }
 
+.small {
+    font-size: 12px;
+    a, p {
+       font-size: 12px;
+    }
+}
+
 .mt--0 {
     margin-top: 0;
 }
