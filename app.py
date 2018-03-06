@@ -44,6 +44,11 @@ def id_to_planet(ids):
 app.layout = html.Div([
     html.Div([
         html.Div([
+            html.H1(id="dash-title")
+        ], className="column small-12")
+    ], className="row"),
+    html.Div([
+        html.Div([
             html.Div(
                 id="summary-table"
             ),
@@ -65,7 +70,7 @@ app.layout = html.Div([
                     }]
                 }
             )
-        ], className="column small-12 medium-6"),
+        ], className="column small-12 large-5"),
         html.Div([
             dcc.RadioItems(
                 id="user-type-top",
@@ -97,13 +102,13 @@ app.layout = html.Div([
             html.Div(
                 id="user-table-bottom"
             )
-        ], className="column small-12 medium-6")
+        ], className="column small-12 large-7")
 
     ], className="row"),
     html.Div([
         html.Div([
             # dcc.Graph(id="display-xy-corr")
-        ], className="column small-12 medium-6"),
+        ], className="column small-12 large-6"),
         html.Div([
             html.Div([
                 html.Div([
@@ -117,9 +122,17 @@ app.layout = html.Div([
                     # )
                 ], className="column small-12")
             ], className="row")
-        ], className="column small-12 medium-6"),
+        ], className="column small-12 large-6"),
     ], className="row")
 ])
+
+
+@app.callback(
+    Output(component_id="dash-title", component_property="children"),
+    [Input(component_id="interval-slider", component_property="value")]
+)
+def update_dash_title(month):
+    return "Rides Dashboard for Month Starting {}/1".format(month)
 
 
 def get_month_summary(df, month):
@@ -145,6 +158,9 @@ def generate_summary_table(df, month):
     pm = get_month_summary(df_trips, month - 1)
     mm = np.round((cm * 1.0 / pm), 2) if pm[0] else ["-" for i in range(3)]
     pm = pm if pm[0] else ["-" for i in range(3)]
+
+    cm = ["{:,.0f}".format(x) for x in cm]
+    pm = ["{:,.0f}".format(x) if x != "-" else "-" for x in pm]
 
     table = html.Table([
         html.Tr([html.Th(h)
