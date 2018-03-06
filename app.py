@@ -7,11 +7,15 @@ import pandas as pd
 import numpy as np
 
 app = dash.Dash(__name__)
+app.css.append_css({"external_url": "https://fonts.googleapis.com/css?family=Libre+Franklin:500|Space+Mono"})
 app.css.append_css({"external_url": "https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.3/css/foundation.min.css"})
+app.css.append_css({"external_url": "http://127.0.0.1:3000/style.css"})
 
 # Imports
 df_trips = pd.read_csv("data/generated-marketplace-trips.csv")
 df_planets = pd.read_csv("data/generated-marketplace-planets.csv")
+df_passengers = pd.read_csv("data/generated-marketplace-passengers.csv")
+df_pilots = pd.read_csv("data/generated-marketplace-pilots.csv")
 
 # Add dataframe columns
 df_trips["trip_duration"] = df_trips["trip_ended"] - df_trips["trip_started"]
@@ -35,6 +39,14 @@ max_month = trips_months.max()
 trips_weeks = df_trips["trip_requested_dt"].dt.week
 trips_weeks_counts = trips_weeks.value_counts().sort_index()
 
+df_passengers["created_dt"] = pd.to_datetime(df_passengers["created"], unit="s")
+passengers_weeks = df_passengers["created_dt"].dt.week
+passengers_weeks_counts = passengers_weeks.value_counts().sort_index()
+
+df_pilots["created_dt"] = pd.to_datetime(df_pilots["created"], unit="s")
+pilots_weeks = df_pilots["created_dt"].dt.week
+pilots_weeks_counts = pilots_weeks.value_counts().sort_index()
+
 
 # Util functions
 def id_to_planet(ids):
@@ -44,64 +56,107 @@ def id_to_planet(ids):
 app.layout = html.Div([
     html.Div([
         html.Div([
-            html.H1(id="dash-title")
+            html.H2(
+                id="dash-title",
+                className="dash__title"
+            )
         ], className="column small-12")
-    ], className="row"),
+    ], className="row mb--sm"),
     html.Div([
         html.Div([
             html.Div(
-                id="summary-table"
+                id="summary-table",
+                className="summary__table"
+            ),
+            html.H6(
+                "View Summary for Month",
+                className="mt--sm mb--xs"
             ),
             dcc.Slider(
                 id="interval-slider",
                 min=min_month,
                 max=max_month,
                 value=max_month,
-                marks=month_options
+                marks=month_options,
+                className="summary__slider mb--md"
+            ),
+            html.H6(
+                "Trip Volume by Week",
+                className="mt--sm mb--xs"
             ),
             dcc.Graph(
                 id="display-trips-period",
                 config={"displayModeBar": False},
-                figure={
-                    "data": [{
-                        "type": "bar",
-                        "x": trips_weeks_counts.index,
-                        "y": trips_weeks_counts
-                    }]
-                }
+                className="summary__histogram mb--sm"
+            ),
+            html.H6(
+                "New Users by Week",
+                className="mt--sm mb--xs"
+            ),
+            dcc.Graph(
+                id="display-users-period",
+                config={"displayModeBar": False},
+                className="summary__histogram mb--sm"
             )
         ], className="column small-12 large-5"),
         html.Div([
-            dcc.RadioItems(
-                id="user-type-top",
-                options=user_options,
-                value="pilot",
-                labelStyle={"display": "inline-block"}
-            ),
-            dcc.Dropdown(
-                id="user-planet-top",
-                options=planet_options,
-                searchable=False,
-                value="all"
-            ),
+            html.Div([
+                html.Div([
+                    dcc.Dropdown(
+                        id="user-planet-top",
+                        options=planet_options,
+                        searchable=False,
+                        value="all",
+                        className="user__dropdown--top mb--xs"
+                    ),
+                ], className="column small-5"),
+                html.Div([
+                    dcc.RadioItems(
+                        id="user-type-top",
+                        options=user_options,
+                        value="pilot",
+                        labelStyle={"display": "inline-block"},
+                        className="user__radio--top mb--xs"
+                    ),
+                ], className="column small-7")
+            ], className="row"),
+
             html.Div(
-                id="user-table-top"
+                id="user-table-top",
+                className="user__table--top"
             ),
-            dcc.RadioItems(
-                id="user-type-bottom",
-                options=user_options,
-                value="passenger",
-                labelStyle={"display": "inline-block"}
-            ),
-            dcc.Dropdown(
-                id="user-planet-bottom",
-                options=planet_options,
-                searchable=False,
-                value="all"
-            ),
+
+            html.Div([
+                html.Div([
+                    dcc.Dropdown(
+                        id="user-planet-bottom",
+                        options=planet_options,
+                        searchable=False,
+                        value="all",
+                        className="user__dropdown--bottom mb--xs"
+                    ),
+                ], className="column small-5"),
+                html.Div([
+                    dcc.RadioItems(
+                        id="user-type-bottom",
+                        options=user_options,
+                        value="passenger",
+                        labelStyle={"display": "inline-block"},
+                        className="user__radio--bottom mb--xs"
+                    ),
+                ], className="column small-7")
+            ], className="row"),
+
             html.Div(
-                id="user-table-bottom"
-            )
+                id="user-table-bottom",
+                className="user__table--bottom"
+            ),
+
+            dcc.Markdown("""A work in progress.
+                Code at [theianchan.github.com](https://theianchan.github.com).
+                Data from [Marketplace Data Generation](https://github.com/theianchan/data-notebooks/blob/master/marketplace-data-generation.ipynb).
+                """)
+
         ], className="column small-12 large-7")
 
     ], className="row"),
@@ -124,7 +179,7 @@ app.layout = html.Div([
             ], className="row")
         ], className="column small-12 large-6"),
     ], className="row")
-])
+], className="dash-app__body mt--sm mb--md")
 
 
 @app.callback(
@@ -132,7 +187,7 @@ app.layout = html.Div([
     [Input(component_id="interval-slider", component_property="value")]
 )
 def update_dash_title(month):
-    return "Rides Dashboard for Month Starting {}/1".format(month)
+    return "Rides Overview for Month Starting {}/1".format(month)
 
 
 def get_month_summary(df, month):
@@ -164,7 +219,7 @@ def generate_summary_table(df, month):
 
     table = html.Table([
         html.Tr([html.Th(h)
-                for h in ["", "Current", "Previous", "M/M Change"]]),
+                for h in ["", "Current Month", "Previous Month", "M/M Change"]]),
         html.Tr([html.Td("Trips"),
                 html.Td(cm[0]), html.Td(pm[0]), html.Td(mm[0])]),
         html.Tr([html.Td("Pilots"),
@@ -182,6 +237,58 @@ def generate_summary_table(df, month):
 )
 def update_summary_table(month):
     return generate_summary_table(df_trips, month)
+
+
+@app.callback(
+    Output(component_id="display-trips-period", component_property="figure"),
+    [Input(component_id="interval-slider", component_property="value")]
+)
+def update_trips_histogram(month):
+    data = [
+        dict(
+            type="bar",
+            x=trips_weeks_counts.index,
+            y=trips_weeks_counts,
+            name="Trips",
+            showlegend=False
+        )
+    ]
+    layout = go.Layout(
+        autosize=True,
+        height=240,
+        margin={"r": 20, "b": 30, "l": 40, "t": 20}
+    )
+    return dict(data=data, layout=layout)
+
+
+@app.callback(
+    Output(component_id="display-users-period", component_property="figure"),
+    [Input(component_id="interval-slider", component_property="value")]
+)
+def update_users_histogram(month):
+    data = [
+        dict(
+            type="scatter",
+            mode="lines",
+            x=pilots_weeks_counts.index,
+            y=pilots_weeks_counts,
+            name="Pilots"
+        ),
+        dict(
+            type="scatter",
+            mode="lines",
+            x=passengers_weeks_counts.index,
+            y=passengers_weeks_counts,
+            name="Passengers"
+        )
+    ]
+    layout = go.Layout(
+        autosize=True,
+        height=240,
+        margin={"r": 20, "b": 30, "l": 30, "t": 20},
+        legend={"orientation": "h"}
+    )
+    return dict(data=data, layout=layout)
 
 
 def filter_df(df, month="all", planet="all"):
