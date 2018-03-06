@@ -194,7 +194,7 @@ def get_table_users(df, user_type, month="all", planet="all", top=3):
     filtered by month and planet."""
 
     user_rating = user_type + "_rating"  # example: "pilot_rating"
-    user_label = user_type.capitalize() + " ID"  # example: "Pilot ID"
+    user_label = user_type.capitalize()  # example: "Pilot ID"
 
     filtered_columns = [
         user_type, "planet", "trip_completed", "trip_duration",
@@ -212,30 +212,40 @@ def get_table_users(df, user_type, month="all", planet="all", top=3):
         "trip_duration": "mean"
     }).sort_values("trip_completed", ascending=False)
     dff_ranked = dff_ranked.reset_index()
+    dff_ranked.loc["Average " + user_label] = dff_ranked.mean()
+
+    dff_ranked["trip_completed"] = dff_ranked["trip_completed"].round(0)
     dff_ranked["price"] = dff_ranked["price"].map(
         lambda x: "{:,.2f}".format(x))
     dff_ranked["trip_duration"] = dff_ranked["trip_duration"].map(
         lambda x: "{}:{:02d}".format(*divmod(int(x), 60)))
     dff_ranked[user_rating] = dff_ranked[user_rating].round(2)
+
+    dff_ranked_average = dff_ranked.loc["Average " + user_label]
+    dff_ranked_average = pd.DataFrame(dff_ranked_average).T
+    dff_ranked_average.loc["Average " + user_label, user_type] = "-"
+    dff_ranked_average.loc["Average " + user_label, "planet"] = "-"
+
     dff_ranked = pad_df(dff_ranked, filtered_columns, top)
+    dff_ranked = pd.concat((dff_ranked, dff_ranked_average))
     dff_ranked = dff_ranked[filtered_columns]
 
     table_rows = [
         html.Tr([html.Th(h) for h in [
-            "", user_label, "Planet", "Trips Completed",
+            "", user_label + " ID", "Planet", "Trips Completed",
             "Avg Trip Duration", "Total Revenue", "Avg Rating"
         ]])
     ]
     table_rows.extend([
         html.Tr([
-            html.Td(i + 1),
+            html.Td(i + 1 if i < top else "Average " + user_label),
             html.Td(dff_ranked.iloc[i][user_type]),
             html.Td(dff_ranked.iloc[i]["planet"]),
             html.Td(dff_ranked.iloc[i]["trip_completed"]),
             html.Td(dff_ranked.iloc[i]["trip_duration"]),
             html.Td(dff_ranked.iloc[i]["price"]),
             html.Td(dff_ranked.iloc[i][user_rating])
-        ]) for i in range(top)
+        ]) for i in range(top + 1)
     ])
     table = html.Table(table_rows)
 
