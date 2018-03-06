@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 
 app = dash.Dash(__name__)
+server = app.server
+
 app.css.append_css({"external_url": "https://fonts.googleapis.com/css?family=Libre+Franklin:500|Space+Mono"})
 app.css.append_css({"external_url": "https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.3/css/foundation.min.css"})
 app.css.append_css({"external_url": "http://127.0.0.1:3000/style.css"})
